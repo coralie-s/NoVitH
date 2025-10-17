@@ -3,7 +3,10 @@
 
 <head>
   <title>prescreen_PT1</title>
-  <script src="jspsych/jspsych.js"></script>
+  <script src="https://unpkg.com/jspsych@7.3.4" type="text/javascript"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-survey-html-form@1.0.3"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-survey-multi-select@1.1.3"></script>
+  <script src="https://unpkg.com/@jspsych/plugin-survey-multi-choice@1.1.3"></script>
   </head>
 <body></body>
 
@@ -11,22 +14,22 @@
 
 <script>
 
-  // Initialize jsPsych -----------------------------------------------------------------
+  // Initialize jsPsych and create timeline -----------------------------------------------------------------
   var jsPsych = initJsPsych({});
-
-  // Create Timeline --------------------------------------------------------------------------
   var timeline = [];
 
 
-  // Age
+  // Age --------------------------------------------------------------------------
   var age = {
     type: jsPsychSurveyHtmlForm,
     preamble: '<p><strong>Quel âge avez vous ? </strong><br>Insérez un nombre ci-dessous.</p>',
     html: '<input type="number" id="age" name="age" min="0" max="100" required><br><br>',
+    data: { trial_name: 'age' }
   }
   timeline.push(age);
 
-// Questions de familiarité avec la conduite
+
+// Question de familiarité avec la conduite --------------------------------------------------------------------------
 var expe_conduite = {
   type: jsPsychSurveyMultiSelect,
   questions: [
@@ -44,10 +47,41 @@ var expe_conduite = {
     }
   ], 
   randomize_question_order: false
-}
-timeline.push(expe_conduite);
+};
 
-// If select "conduite accompagnée"
+
+// check age --------------------------------------------------------------------------
+
+// display if age <18
+var under18 = {
+  type: jsPsychSurveyHtmlForm,
+  preamble: '<p>Vous avez indiqué avoir moins de 18 ans.</p>',
+  html: '<p>Merci de votre intérêt, mais vous ne pouvez pas participer à cette étude. Vous pouvez fermer la page web.</p>'
+};
+
+// check conditions
+var if_minor = {
+  timeline: [under18],
+  conditional_function: function() {
+    var data = jsPsych.data.get().filter({ trial_name: 'age' }).last(1).values()[0];
+    var response = JSON.parse(data.response).age;
+    return parseInt(response) < 18;
+  }
+};
+var if_adult = {
+  timeline: [expe_conduite],
+  conditional_function: function() {
+    var data = jsPsych.data.get().filter({ trial_name: 'age' }).last(1).values()[0];
+    var response = JSON.parse(data.response).age;
+    return parseInt(response) >= 18;
+  }
+};
+timeline.push(if_minor, if_adult);
+
+
+// Questions de conduite à montrer conditionellement --------------------------------------------------------------------------
+
+// conduite accompagnée
 var conduite_acc = {
   type: jsPsychSurveyMultiSelect,
   questions: [
@@ -64,10 +98,9 @@ var conduite_acc = {
     }
   ], 
   randomize_question_order: false
-}
-timeline.push(conduite_acc);
+};
 
-// If select "permis B"
+// permis B
 var permis_B = {
   type: jsPsychSurveyMultiSelect,
   questions: [
@@ -97,25 +130,21 @@ var permis_B = {
     }
   ],  
   randomize_question_order: false
-}
-timeline.push(permis_B);
-
+};
   var heures_conduite = {
     type: jsPsychSurveyHtmlForm,
     preamble: '<p><strong>Combien d’heures de conduite à l’auto-école avez-vous réalisées en vue d’obtenir le permis ? </strong><br>Insérez un nombre ci-dessous.</p>',
     html: '<input type="number" id="heures_conduite" name="heures_conduite" min="0" max="500" required><br><br>',
-  }
-  timeline.push(heures_conduite);
+  };
 
-  // Si sélectionnent “autre permis”
+  // autre permis
 var autre_permis_nom = {
     type: jsPsychSurveyHtmlForm,
     preamble: '<p><strong>Quel type de permis autre que le permis B avez-vous?</strong><br>Ecrivez ci-dessous.</p>',
     html: '<input type="text" id="autre_permis_nom" name="autre_permis_nom" required><br><br>',
-  }
-  timeline.push(autre_permis);
+  };
 
-  var permis_autre = {
+var permis_autre = {
   type: jsPsychSurveyMultiSelect,
   questions: [
     {
@@ -144,10 +173,9 @@ var autre_permis_nom = {
     }
   ],  
   randomize_question_order: false
-}
-timeline.push(permis_autre);
+};
 
-// Si sélectionnent “véhicule sans permis”
+// véhicule sans permis
 var vehic_sans_permis = {
   type: jsPsychSurveyMultiSelect,
   questions: [
@@ -164,11 +192,9 @@ var vehic_sans_permis = {
     }
   ], 
   randomize_question_order: false
-}
-timeline.push(vehic_sans_permis);
+};
 
-
-// Si sélectionnent “deux roues”
+// deux roues
 var deux_roues_mot = {
   type: jsPsychSurveyMultiSelect,
   questions: [
@@ -185,11 +211,73 @@ var deux_roues_mot = {
     }
   ], 
   randomize_question_order: false
-}
-timeline.push(deux_roues_mot);
+};
 
+// Conditional display node --------------------------------------------------------------------------
 
-// Questions vulnérabilité
+// conduite accompagnée
+var if_conduite_acc = {
+  timeline: [conduite_acc],
+  conditional_function: function() {
+    var data = jsPsych.data.get().filter({trial_name: 'expe_conduite'}).last(1).values()[0];
+    var response = JSON.parse(data.response)["Q0"];
+    return response.includes("Je pratique (ou ai pratiqué) la conduite accompagnée");
+  }
+};
+
+// If "permis B" (either currently passing or already have it)
+var if_permis_B = {
+  timeline: [permis_B, heures_conduite],
+  conditional_function: function() {
+    var data = jsPsych.data.get().filter({trial_name: 'expe_conduite'}).last(1).values()[0];
+    var response = JSON.parse(data.response)["Q0"];
+    return (
+      response.includes("Je suis en train de passer le permis voiture (permis B)") ||
+      response.includes("J’ai le permis voiture (permis B)")
+    );
+  }
+};
+
+// If "autre permis"
+var if_autre_permis = {
+  timeline: [autre_permis_nom, permis_autre],
+  conditional_function: function() {
+    var data = jsPsych.data.get().filter({trial_name: 'expe_conduite'}).last(1).values()[0];
+    var response = JSON.parse(data.response)["Q0"];
+    return response.includes("J’ai un permis de conduire autre que le permis B");
+  }
+};
+
+// If "voiture sans permis"
+var if_vehic_sans_permis = {
+  timeline: [vehic_sans_permis],
+  conditional_function: function() {
+    var data = jsPsych.data.get().filter({trial_name: 'expe_conduite'}).last(1).values()[0];
+    var response = JSON.parse(data.response)["Q0"];
+    return response.includes("J’utilise (ou ai utilisé) une voiture sans permis");
+  }
+};
+
+// If "deux roues motorisé"
+var if_deux_roues = {
+  timeline: [deux_roues_mot],
+  conditional_function: function() {
+    var data = jsPsych.data.get().filter({trial_name: 'expe_conduite'}).last(1).values()[0];
+    var response = JSON.parse(data.response)["Q0"];
+    return response.includes("J’ai (ou avais) un deux roues motorisé (par ex. moto, scooter)");
+  }
+};
+
+// Push to timeline
+timeline.push(
+  if_conduite_acc,
+  if_permis_B,
+  if_autre_permis,
+  if_vehic_sans_permis,
+  if_deux_roues
+);
+
+// Questions vulnérabilité --------------------------------------------------------------------------
 var vulnerabilite = {
   type: jsPsychSurveyMultiChoice,
   questions: [
