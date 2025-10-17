@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>prescreen_PT1</title>
+  <script src="jspsych/jspsych.js"></script>
+  </head>
+<body></body>
+
+
+
+<script>
+
+  // Initialize jsPsych -----------------------------------------------------------------
+  var jsPsych = initJsPsych({});
+
+  // Create Timeline --------------------------------------------------------------------------
+  var timeline = [];
+
+
+  // Age
+  var age = {
+    type: jsPsychSurveyHtmlForm,
+    preamble: '<p><strong>Quel âge avez vous ? </strong><br>Insérez un nombre ci-dessous.</p>',
+    html: '<input type="number" id="age" name="age" min="0" max="100" required><br><br>',
+  }
+  timeline.push(age);
+
+// Questions de familiarité avec la conduite
+var expe_conduite = {
+  type: jsPsychSurveyMultiSelect,
+  questions: [
+    {
+      prompt: "Concernant votre expérience de conduite automobile, cochez la ou les cases qui s’appliquent à votre situation :", 
+      options: ["Je n’ai pas d’expérience de conduite",
+                "Je pratique (ou ai pratiqué) la conduite accompagnée", 
+                "Je suis en train de passer le permis voiture (permis B)", 
+                "J’ai le permis voiture (permis B)", 
+                "J’ai un permis de conduire autre que le permis B", 
+                "J’utilise (ou ai utilisé) une voiture sans permis",
+                "J’ai (ou avais) un deux roues motorisé (par ex. moto, scooter)"], 
+      horizontal: false,
+      required: true
+    }
+  ], 
+  randomize_question_order: false
+}
+timeline.push(expe_conduite);
+
+// If select "conduite accompagnée"
+var conduite_acc = {
+  type: jsPsychSurveyMultiSelect,
+  questions: [
+    {
+      prompt: "Quand avez-vous commencé la conduite accompagnée ?", 
+      options: ["Il y a moins d’un mois",
+                "Il y a 1-3 mois", 
+                "Il y a 4-6 mois", 
+                "Il y a 7-9 mois", 
+                "Il y a 10-12 mois", 
+                "Il y a plus d’un an"], 
+      horizontal: false,
+      required: true
+    }
+  ], 
+  randomize_question_order: false
+}
+timeline.push(conduite_acc);
+
+// If select "permis B"
+var permis_B = {
+  type: jsPsychSurveyMultiSelect,
+  questions: [
+    {
+      prompt: "Quand avez-vous commencé à conduire en vue d’obtenir votre permis B ?", 
+      options: ["Il y a moins d’un mois",
+                "Il y a 1-3 mois", 
+                "Il y a 4-6 mois", 
+                "Il y a 7-9 mois", 
+                "Il y a 10-12 mois", 
+                "Il y a plus d’un an"], 
+      horizontal: false,
+      required: true,
+      name: 'permis_B_start_time'
+    }, 
+    {
+      prompt: "Quand avez-vous obtenu votre permis B ?", 
+      options: ["Il y a moins d’un mois",
+                "Il y a 1-3 mois", 
+                "Il y a 4-6 mois", 
+                "Il y a 7-9 mois", 
+                "Il y a 10-12 mois", 
+                "Il y a plus d’un an"], 
+      horizontal: false,
+      required: true,
+      name: 'permis_B_obtention_time'
+    }
+  ],  
+  randomize_question_order: false
+}
+timeline.push(permis_B);
+
+  var heures_conduite = {
+    type: jsPsychSurveyHtmlForm,
+    preamble: '<p><strong>Combien d’heures de conduite à l’auto-école avez-vous réalisées en vue d’obtenir le permis ? </strong><br>Insérez un nombre ci-dessous.</p>',
+    html: '<input type="number" id="heures_conduite" name="heures_conduite" min="0" max="500" required><br><br>',
+  }
+  timeline.push(heures_conduite);
+
+  // Si sélectionnent “autre permis”
+var autre_permis_nom = {
+    type: jsPsychSurveyHtmlForm,
+    preamble: '<p><strong>Quel type de permis autre que le permis B avez-vous?</strong><br>Ecrivez ci-dessous.</p>',
+    html: '<input type="text" id="autre_permis_nom" name="autre_permis_nom" required><br><br>',
+  }
+  timeline.push(autre_permis);
+
+  var permis_autre = {
+  type: jsPsychSurveyMultiSelect,
+  questions: [
+    {
+      prompt: "Quand avez-vous commencé à conduire en vue d’obtenir votre permis autre que le permis B ?", 
+      options: ["Il y a moins d’un mois",
+                "Il y a 1-3 mois", 
+                "Il y a 4-6 mois", 
+                "Il y a 7-9 mois", 
+                "Il y a 10-12 mois", 
+                "Il y a plus d’un an"], 
+      horizontal: false,
+      required: true,
+      name: 'permis_autre_start_time'
+    }, 
+    {
+      prompt: "Quand avez-vous obtenu votre permis autre que le permis B ?", 
+      options: ["Il y a moins d’un mois",
+                "Il y a 1-3 mois", 
+                "Il y a 4-6 mois", 
+                "Il y a 7-9 mois", 
+                "Il y a 10-12 mois", 
+                "Il y a plus d’un an"], 
+      horizontal: false,
+      required: true,
+      name: 'permis_autre_obtention_time'
+    }
+  ],  
+  randomize_question_order: false
+}
+timeline.push(permis_autre);
+
+// Si sélectionnent “véhicule sans permis”
+var vehic_sans_permis = {
+  type: jsPsychSurveyMultiSelect,
+  questions: [
+    {
+      prompt: "Quand avez-vous commencé à conduire votre voiture sans permis ?", 
+      options: ["Il y a moins d’un mois",
+                "Il y a 1-3 mois", 
+                "Il y a 4-6 mois", 
+                "Il y a 7-9 mois", 
+                "Il y a 10-12 mois", 
+                "Il y a plus d’un an"], 
+      horizontal: false,
+      required: true
+    }
+  ], 
+  randomize_question_order: false
+}
+timeline.push(vehic_sans_permis);
+
+
+// Si sélectionnent “deux roues”
+var deux_roues_mot = {
+  type: jsPsychSurveyMultiSelect,
+  questions: [
+    {
+      prompt: "Quand avez-vous commencé à conduire votre deux roues motorisé ?", 
+      options: ["Il y a moins d’un mois",
+                "Il y a 1-3 mois", 
+                "Il y a 4-6 mois", 
+                "Il y a 7-9 mois", 
+                "Il y a 10-12 mois", 
+                "Il y a plus d’un an"], 
+      horizontal: false,
+      required: true
+    }
+  ], 
+  randomize_question_order: false
+}
+timeline.push(deux_roues_mot);
+
+
+// Questions vulnérabilité
+var vulnerabilite = {
+  type: jsPsychSurveyMultiChoice,
+  questions: [
+    {
+      prompt: "<p>Si vous rentrez dans l’une des situations suivantes, cochez la case “Oui” ci-dessous. Sinon, cochez la case “Non”.</p>
+              <ul>
+                <li>Je souffre d’épilepsie photosensible</li>
+                <li>J’ai le mal des transports</li>
+                <li>J’ai un dysfonctionnement du système nerveux autonome</li>
+                <li>Je suis enceinte</li>
+                <li>J’ai un trouble vestibulaire</li>
+                <li>J’ai un trouble de la proprioception</li>
+                <li>J’ai un trouble oculomoteur</li>
+                <li>Je souffre de migraines</li>
+              </ul>", 
+      name: 'vulnerabilite', 
+      options: ['Oui', 'Non'], 
+      required: true
+    }
+  ],
+}
+timeline.push(vulnerabilite);
+
+
+
+
+
+
+
