@@ -7,6 +7,7 @@
   <script src="https://unpkg.com/@jspsych/plugin-survey-html-form@1.0.3"></script>
   <script src="https://unpkg.com/@jspsych/plugin-survey-multi-select@1.1.3"></script>
   <script src="https://unpkg.com/@jspsych/plugin-survey-multi-choice@1.1.3"></script>
+  <link rel="stylesheet" href="https://unpkg.com/jspsych@7.3.4/css/jspsych.css">
   </head>
 <body></body>
 
@@ -24,19 +25,16 @@ var age = {
   type: jsPsychSurveyHtmlForm,
   preamble: '<p><strong>Quel âge avez-vous ?</strong><br>Insérez un nombre ci-dessous.</p>',
   html: '<input type="number" id="age" name="age" min="0" max="100" required><br><br>',
-  data: { trial_name: 'age' },
   on_finish: function(data) {
-    var responses = JSON.parse(data.responses);
-    var age_value = parseInt(responses.age);
-    // Si l'âge est inférieur à 18, exclusion
+    let resp = data.response || data.responses;
+    if (typeof resp === 'string') resp = JSON.parse(resp);
+    const age_value = parseInt(resp.age, 10);
     if (age_value < 18) {
-      jsPsych.endExperiment(
-        'Merci, mais vous ne pouvez pas participer à cette étude car vous devez avoir au moins 18 ans.'
-      );
-    } 
+      jsPsych.endExperiment('Merci, mais vous ne pouvez pas participer à cette étude car vous devez avoir au moins 18 ans.');
+    }
   }
-}
-timeline.push(age);
+};
+  timeline.push(age);
 
 
 // Question de familiarité avec la conduite --------------------------------------------------------------------------
@@ -44,24 +42,33 @@ var expe_conduite = {
   type: jsPsychSurveyMultiSelect,
   questions: [
     {
-      prompt: "Concernant votre expérience de conduite automobile, cochez la ou les cases qui s’appliquent à votre situation :", 
-      options: ["Je n’ai pas d’expérience de conduite",
-                "Je pratique (ou ai pratiqué) la conduite accompagnée", 
-                "Je suis en train de passer le permis voiture (permis B)", 
-                "J’ai le permis voiture (permis B)", 
-                "J’ai un permis de conduire autre que le permis B", 
-                "J’utilise (ou ai utilisé) une voiture sans permis",
-                "J’ai (ou avais) un deux roues motorisé (par ex. moto, scooter)"], 
+      prompt: `Concernant votre expérience de conduite automobile, cochez la ou les cases qui s'appliquent à votre situation :`, 
+      options: [`Je n'ai pas d'expérience de conduite`,
+                `Je pratique (ou ai pratiqué) la conduite accompagnée`, 
+                `Je suis en train de passer le permis voiture (permis B)`, 
+                `J'ai le permis voiture (permis B)`, 
+                `J'ai un permis de conduire autre que le permis B`, 
+                `J'utilise (ou ai utilisé) une voiture sans permis`,
+                `J'ai (ou avais) un deux roues motorisé (par ex. moto, scooter)`], 
       horizontal: false,
       required: true
     }
   ], 
-  randomize_question_order: false
+  randomize_question_order: false,
+  data: { trial_name: 'expe_conduite' }
 }
 timeline.push(expe_conduite);
 
 
 // Questions de conduite à montrer conditionellement --------------------------------------------------------------------------
+var durationsOptions = [
+  `Il y a moins d'un mois`,
+  `Il y a 1-3 mois`,
+  `Il y a 4-6 mois`,
+  `Il y a 7-9 mois`,
+  `Il y a 10-12 mois`,
+  `Il y a plus d'un an`
+];
 
 // Conduite accompagnée
 var conduite_acc = {
@@ -69,14 +76,7 @@ var conduite_acc = {
   questions: [
     {
       prompt: "Quand avez-vous commencé la conduite accompagnée ?",
-      options: [
-        "Il y a moins d’un mois",
-        "Il y a 1-3 mois",
-        "Il y a 4-6 mois",
-        "Il y a 7-9 mois",
-        "Il y a 10-12 mois",
-        "Il y a plus d’un an"
-      ],
+      options: durationsOptions,
       horizontal: false,
       required: true
     }
@@ -84,9 +84,9 @@ var conduite_acc = {
   on_finish: function(data) {
     var reponse = data.response.Q0; // Q0 = première (et unique) question
 
-    if (reponse.includes("Il y a plus d’un an")) {
+    if (reponse.includes(`Il y a plus d'un an`)) {
       jsPsych.endExperiment(
-        "Merci, mais vous ne pouvez pas participer à cette étude car vous avez commencé la conduite accompagnée il y a plus d’un an."
+        `Merci, mais vous ne pouvez pas participer à cette étude car vous avez commencé la conduite accompagnée il y a plus d'un an.`
       );
     }
   }
@@ -97,25 +97,15 @@ var permis_B = {
   type: jsPsychSurveyMultiSelect,
   questions: [
     {
-      prompt: "Quand avez-vous commencé à conduire en vue d’obtenir votre permis B ?", 
-      options: ["Il y a moins d’un mois",
-                "Il y a 1-3 mois", 
-                "Il y a 4-6 mois", 
-                "Il y a 7-9 mois", 
-                "Il y a 10-12 mois", 
-                "Il y a plus d’un an"], 
+      prompt: `Quand avez-vous commencé à conduire en vue d'obtenir votre permis B ?`, 
+      options: durationsOptions, 
       horizontal: false,
       required: true,
       name: 'permis_B_start_time'
     }, 
     {
       prompt: "Quand avez-vous obtenu votre permis B ?", 
-      options: ["Il y a moins d’un mois",
-                "Il y a 1-3 mois", 
-                "Il y a 4-6 mois", 
-                "Il y a 7-9 mois", 
-                "Il y a 10-12 mois", 
-                "Il y a plus d’un an"], 
+      options: durationsOptions, 
       horizontal: false,
       required: true,
       name: 'permis_B_obtention_time'
@@ -130,11 +120,11 @@ var permis_B = {
 
     // Vérifie si au moins une réponse contient "plus d’un an"
     if (
-      start_time.includes("Il y a plus d’un an") ||
-      obtention_time.includes("Il y a plus d’un an")
+      start_time.includes(`Il y a plus d'un an`) ||
+      obtention_time.includes(`Il y a plus d'un an`)
     ) {
       jsPsych.endExperiment(
-        "Merci, mais vous ne pouvez pas participer à cette étude car votre expérience de conduite remonte à plus d’un an."
+        `Merci, mais vous ne pouvez pas participer à cette étude car votre expérience de conduite remonte à plus d'un an.`
       );
     }
     // sinon, jsPsych continue naturellement
@@ -143,7 +133,7 @@ var permis_B = {
 
   var heures_conduite = {
     type: jsPsychSurveyHtmlForm,
-    preamble: '<p><strong>Combien d’heures de conduite à l’auto-école avez-vous réalisées en vue d’obtenir le permis ? </strong><br>Insérez un nombre ci-dessous.</p>',
+    preamble: `<strong>Combien d'heures de conduite à l'auto-école avez-vous réalisées en vue d'obtenir le permis ? </strong><br>Insérez un nombre ci-dessous.`,
     html: '<input type="number" id="heures_conduite" name="heures_conduite" min="0" max="500" required><br><br>',
   };
 
@@ -158,25 +148,15 @@ var permis_autre = {
   type: jsPsychSurveyMultiSelect,
   questions: [
     {
-      prompt: "Quand avez-vous commencé à conduire en vue d’obtenir votre permis autre que le permis B ?", 
-      options: ["Il y a moins d’un mois",
-                "Il y a 1-3 mois", 
-                "Il y a 4-6 mois", 
-                "Il y a 7-9 mois", 
-                "Il y a 10-12 mois", 
-                "Il y a plus d’un an"], 
+      prompt: `Quand avez-vous commencé à conduire en vue d'obtenir votre permis autre que le permis B ?`, 
+      options: durationsOptions, 
       horizontal: false,
       required: true,
       name: 'permis_autre_start_time'
     }, 
     {
       prompt: "Quand avez-vous obtenu votre permis autre que le permis B ?", 
-      options: ["Il y a moins d’un mois",
-                "Il y a 1-3 mois", 
-                "Il y a 4-6 mois", 
-                "Il y a 7-9 mois", 
-                "Il y a 10-12 mois", 
-                "Il y a plus d’un an"], 
+      options: durationsOptions, 
       horizontal: false,
       required: true,
       name: 'permis_autre_obtention_time'
@@ -190,11 +170,11 @@ on_finish: function(data) {
 
     // Vérifie si au moins une réponse contient "plus d’un an"
     if (
-      start_time.includes("Il y a plus d’un an") ||
-      obtention_time.includes("Il y a plus d’un an")
+      start_time.includes(`Il y a plus d'un an`) ||
+      obtention_time.includes(`Il y a plus d'un an`)
     ) {
       jsPsych.endExperiment(
-        "Merci, mais vous ne pouvez pas participer à cette étude car votre expérience de conduite remonte à plus d’un an."
+        `Merci, mais vous ne pouvez pas participer à cette étude car votre expérience de conduite remonte à plus d'un an.`
       );
     }
     // sinon, jsPsych continue naturellement
@@ -207,12 +187,7 @@ var vehic_sans_permis = {
   questions: [
     {
       prompt: "Quand avez-vous commencé à conduire votre voiture sans permis ?", 
-      options: ["Il y a moins d’un mois",
-                "Il y a 1-3 mois", 
-                "Il y a 4-6 mois", 
-                "Il y a 7-9 mois", 
-                "Il y a 10-12 mois", 
-                "Il y a plus d’un an"], 
+      options: durationsOptions, 
       horizontal: false,
       required: true
     }
@@ -220,9 +195,9 @@ var vehic_sans_permis = {
   on_finish: function(data) {
     var reponse = data.response.Q0; // Q0 = première (et unique) question
 
-    if (reponse.includes("Il y a plus d’un an")) {
+    if (reponse.includes(`Il y a plus d'un an`)) {
       jsPsych.endExperiment(
-        "Merci, mais vous ne pouvez pas participer à cette étude car votre expérience de conduite remonte à plus d’un an."
+        `Merci, mais vous ne pouvez pas participer à cette étude car votre expérience de conduite remonte à plus d'un an.`
       );
     }
   }
@@ -234,12 +209,7 @@ var deux_roues_mot = {
   questions: [
     {
       prompt: "Quand avez-vous commencé à conduire votre deux roues motorisé ?", 
-      options: ["Il y a moins d’un mois",
-                "Il y a 1-3 mois", 
-                "Il y a 4-6 mois", 
-                "Il y a 7-9 mois", 
-                "Il y a 10-12 mois", 
-                "Il y a plus d’un an"], 
+      options: durationsOptions, 
       horizontal: false,
       required: true
     }
@@ -249,7 +219,7 @@ var deux_roues_mot = {
 
     if (reponse.includes("Il y a plus d’un an")) {
       jsPsych.endExperiment(
-        "Merci, mais vous ne pouvez pas participer à cette étude car votre expérience de conduite remonte à plus d’un an."
+        `Merci, mais vous ne pouvez pas participer à cette étude car votre expérience de conduite remonte à plus d'un an.`
       );
     }
   }
@@ -262,7 +232,9 @@ var if_conduite_acc = {
   timeline: [conduite_acc],
   conditional_function: function() {
     var data = jsPsych.data.get().filter({trial_name: 'expe_conduite'}).last(1).values()[0];
-    var response = JSON.parse(data.response)["Q0"];
+    var resp = data.response;
+if (typeof resp === 'string') resp = JSON.parse(resp);
+var response = resp["Q0"];
     return response.includes("Je pratique (ou ai pratiqué) la conduite accompagnée");
   }
 };
@@ -272,10 +244,12 @@ var if_permis_B = {
   timeline: [permis_B, heures_conduite],
   conditional_function: function() {
     var data = jsPsych.data.get().filter({trial_name: 'expe_conduite'}).last(1).values()[0];
-    var response = JSON.parse(data.response)["Q0"];
+    var resp = data.response;
+if (typeof resp === 'string') resp = JSON.parse(resp);
+var response = resp["Q0"];
     return (
-      response.includes("Je suis en train de passer le permis voiture (permis B)") ||
-      response.includes("J’ai le permis voiture (permis B)")
+      response.includes(`Je suis en train de passer le permis voiture (permis B)`) ||
+      response.includes(`J'ai le permis voiture (permis B)`)
     );
   }
 };
@@ -285,8 +259,10 @@ var if_autre_permis = {
   timeline: [autre_permis_nom, permis_autre],
   conditional_function: function() {
     var data = jsPsych.data.get().filter({trial_name: 'expe_conduite'}).last(1).values()[0];
-    var response = JSON.parse(data.response)["Q0"];
-    return response.includes("J’ai un permis de conduire autre que le permis B");
+    var resp = data.response;
+if (typeof resp === 'string') resp = JSON.parse(resp);
+var response = resp["Q0"];
+    return response.includes(`J'ai un permis de conduire autre que le permis B`);
   }
 };
 
@@ -295,8 +271,10 @@ var if_vehic_sans_permis = {
   timeline: [vehic_sans_permis],
   conditional_function: function() {
     var data = jsPsych.data.get().filter({trial_name: 'expe_conduite'}).last(1).values()[0];
-    var response = JSON.parse(data.response)["Q0"];
-    return response.includes("J’utilise (ou ai utilisé) une voiture sans permis");
+    var resp = data.response;
+if (typeof resp === 'string') resp = JSON.parse(resp);
+var response = resp["Q0"];
+    return response.includes(`J'utilise (ou ai utilisé) une voiture sans permis`);
   }
 };
 
@@ -305,8 +283,10 @@ var if_deux_roues = {
   timeline: [deux_roues_mot],
   conditional_function: function() {
     var data = jsPsych.data.get().filter({trial_name: 'expe_conduite'}).last(1).values()[0];
-    var response = JSON.parse(data.response)["Q0"];
-    return response.includes("J’ai (ou avais) un deux roues motorisé (par ex. moto, scooter)");
+    var resp = data.response;
+if (typeof resp === 'string') resp = JSON.parse(resp);
+var response = resp["Q0"];
+    return response.includes(`J'ai (ou avais) un deux roues motorisé (par ex. moto, scooter)`);
   }
 };
 
@@ -324,17 +304,17 @@ var vulnerabilite = {
   type: jsPsychSurveyMultiChoice,
   questions: [
     {
-      prompt: "<p>Si vous rentrez dans l’une des situations suivantes, cochez la case “Oui” ci-dessous. Sinon, cochez la case “Non”.</p>
+      prompt: `<p>Si vous rentrez dans l'une des situations suivantes, cochez la case "Oui" ci-dessous. Sinon, cochez la case “Non”.</p>
               <ul>
-                <li>Je souffre d’épilepsie photosensible</li>
-                <li>J’ai le mal des transports</li>
-                <li>J’ai un dysfonctionnement du système nerveux autonome</li>
+                <li>Je souffre d'épilepsie photosensible</li>
+                <li>J'ai le mal des transports</li>
+                <li>J'ai un dysfonctionnement du système nerveux autonome</li>
                 <li>Je suis enceinte</li>
-                <li>J’ai un trouble vestibulaire</li>
-                <li>J’ai un trouble de la proprioception</li>
-                <li>J’ai un trouble oculomoteur</li>
+                <li>J'ai un trouble vestibulaire</li>
+                <li>J'ai un trouble de la proprioception</li>
+                <li>J'ai un trouble oculomoteur</li>
                 <li>Je souffre de migraines</li>
-              </ul>", 
+              </ul>`, 
       name: 'vulnerabilite', 
       options: ['Oui', 'Non'], 
      required: true
@@ -364,9 +344,6 @@ var vulnerabilite = {
 }
 timeline.push(vulnerabilite);
 
-
-
-
-
-
-
+jsPsych.run(timeline);
+</script>
+</html>
