@@ -185,8 +185,8 @@ var permis_autre = {
   randomize_question_order: false,
 on_finish: function(data) {
     var responses = data.response;
-    var start_time = responses.permis_B_start_time;
-    var obtention_time = responses.permis_B_obtention_time;
+    var start_time = responses.permis_autre_start_time;
+    var obtention_time = responses.permis_autre_obtention_time;
 
     // Vérifie si au moins une réponse contient "plus d’un an"
     if (
@@ -344,13 +344,13 @@ var vulnerabilite = {
     var reponse = data.response.vulnerabilite;
 
     if (reponse === 'Oui') {
-      jsPsych.endExperiment('Merci de votre inétrêt. Malheureusement, vous ne pouvez pas participer à cette étude pour des raisons de sécurité. <br> Vous pouvez fermer la page web.');
+      jsPsych.endExperiment('Merci de votre intérêt. Malheureusement, vous ne pouvez pas participer à cette étude pour des raisons de sécurité. <br> Vous pouvez fermer la page web.');
     } else {
       // message deredicrection SONA
       document.body.innerHTML = `
         <div style="text-align:center; font-size:20px; margin-top:50px;">
           <p>Merci pour votre réponse.</p>
-          <p>Vous allez être redirigé vers Sona. Ensuite, vous pourrez vous inscrre pour participer à l'étude.</p>
+          <p>Vous allez être redirigé vers Sona. Ensuite, vous pourrez vous inscrire pour participer à l'étude.</p>
           <p><em>Redirection automatique dans quelques secondes...</em></p>
         </div>
       `;
