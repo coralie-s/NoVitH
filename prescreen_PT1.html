@@ -25,14 +25,14 @@ list-style-position: inside;}
 <script>
 
   // Initialize jsPsych and create timeline -----------------------------------------------------------------
-let sona_id = jsPsych.data.urlVariables()['sona_id'];
-const filename = `${sona_id}.csv`;
-
 const jsPsych = initJsPsych({
   on_finish: function(data){ 
         window.location.assign("https://paris-nanterre.sona-systems.com/webstudy_credit.aspx?experiment_id=719&credit_token=2191cab625c04b3aa1b63b8af994ccf0&survey_code="+sona_id)
     },
 });
+let sona_id = jsPsych.data.urlVariables()['sona_id'];
+const filename = `${sona_id}.csv`;
+
 var timeline = [];
 
 // introductory text
