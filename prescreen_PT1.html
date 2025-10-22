@@ -30,12 +30,10 @@ const filename = `${sona_id}.csv`;
 
 const jsPsych = initJsPsych({
   on_finish: function(data){ 
-        window.location.assign("https://yourschool.sona-systems.com/webstudy_credit.aspx?experiment_id=123&credit_token=4e48f9b638a&survey_code="+sona_id)
+        window.location.assign("https://paris-nanterre.sona-systems.com/webstudy_credit.aspx?experiment_id=719&credit_token=2191cab625c04b3aa1b63b8af994ccf0&survey_code="+sona_id)
     },
 });
 var timeline = [];
-https://paris-nanterre.sona-systems.com/exp_change_info.aspx?dbaction=A&p_study_type=2&p_compensation_type=C
-https://paris-nanterre.sona-systems.com/default.aspx?p_return_experiment_id=719
 
 // introductory text
 var intro = {
@@ -374,7 +372,7 @@ var vulnerabilite = {
 
       // Redirige après 3 secondes
       setTimeout(function(){
-        window.location.href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+        window.location.href = "https://paris-nanterre.sona-systems.com/default.aspx?p_return_experiment_id=718";
       }, 3000);
     }
   }
@@ -389,7 +387,7 @@ const save_data = {
   data_string: ()=>jsPsych.data.get().csv()
 };
 
-
+timeline.push(save_data);
 jsPsych.run(timeline);
 
 </script>
