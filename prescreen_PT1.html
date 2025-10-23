@@ -25,15 +25,11 @@ list-style-position: inside;}
 <script>
 
   // Initialize jsPsych and create timeline -----------------------------------------------------------------
-const jsPsych = initJsPsych({
-  on_finish: function(data){ 
-        window.location.assign("https://paris-nanterre.sona-systems.com/webstudy_credit.aspx?experiment_id=719&credit_token=2191cab625c04b3aa1b63b8af994ccf0&survey_code="+sona_id)
-    },
-});
+const jsPsych = initJsPsych({});
 let sona_id = jsPsych.data.urlVariables()['sona_id'];
 const filename = `${sona_id}.csv`;
-
 var timeline = [];
+let eligible = true;
 
 // introductory text
 var intro = {
@@ -57,6 +53,7 @@ var age = {
     if (typeof resp === 'string') resp = JSON.parse(resp);
     const age_value = parseInt(resp.age, 10);
     if (age_value < 18) {
+      eligible = false;
       jsPsych.endExperiment('Merci, mais vous ne pouvez pas participer à cette étude car vous devez avoir au moins 18 ans.');
     }
   }
@@ -111,6 +108,7 @@ var conduite_acc = {
     var reponse = data.response.Q0; // Q0 = première (et unique) question
 
     if (reponse.includes(`Il y a plus d'un an`)) {
+      eligible = false;
       jsPsych.endExperiment(
         `Merci, mais vous ne pouvez pas participer à cette étude car vous avez commencé la conduite accompagnée il y a plus d'un an.`
       );
@@ -149,6 +147,7 @@ var permis_B_obtained = {
       start_time.includes(`Il y a plus d'un an`) ||
       obtention_time.includes(`Il y a plus d'un an`)
     ) {
+      eligible = false;
       jsPsych.endExperiment(
         `Merci, mais vous ne pouvez pas participer à cette étude car votre expérience de conduite remonte à plus d'un an.`
       );
@@ -179,6 +178,7 @@ var permis_B_not_yet_obtained = {
     if (
       start_time.includes(`Il y a plus d'un an`) 
     ) {
+      eligible = false;
       jsPsych.endExperiment(
         `Merci, mais vous ne pouvez pas participer à cette étude car votre expérience de conduite remonte à plus d'un an.`
       );
@@ -230,6 +230,7 @@ on_finish: function(data) {
       start_time.includes(`Il y a plus d'un an`) ||
       obtention_time.includes(`Il y a plus d'un an`)
     ) {
+      eligible = false;
       jsPsych.endExperiment(
         `Merci, mais vous ne pouvez pas participer à cette étude car votre expérience de conduite remonte à plus d'un an.`
       );
@@ -253,6 +254,7 @@ var vehic_sans_permis = {
     var reponse = data.response.Q0; // Q0 = première (et unique) question
 
     if (reponse.includes(`Il y a plus d'un an`)) {
+      eligible = false;
       jsPsych.endExperiment(
         `Merci, mais vous ne pouvez pas participer à cette étude car votre expérience de conduite remonte à plus d'un an.`
       );
@@ -352,31 +354,32 @@ var vulnerabilite = {
               </ul>`, 
       name: 'vulnerabilite', 
       options: ['Oui', 'Non'], 
-     required: true
+      required: true
     }
   ],
   on_finish: function(data) {
     var reponse = data.response.vulnerabilite;
 
     if (reponse === 'Oui') {
+      eligible = false;
       jsPsych.endExperiment('Merci de votre intérêt. Malheureusement, vous ne pouvez pas participer à cette étude pour des raisons de sécurité. <br> Vous pouvez fermer la page web.');
-    } else {
-      // message deredicrection SONA
+    } 
+    else if (eligible) {  // ✅ Only redirect if still eligible
+      // Message de redirection SONA
       document.body.innerHTML = `
         <div style="text-align:center; font-size:20px; margin-top:50px;">
           <p>Merci pour votre réponse.</p>
-          <p>Vous allez être redirigé vers Sona. Ensuite, vous pourrez vous inscrire pour participer à l'étude.</p>
+          <p>Vous allez être redirigé vers SONA pour recevoir votre crédit de participation, puis choisir un créneau de RDV.</p>
           <p><em>Redirection automatique dans quelques secondes...</em></p>
         </div>
       `;
-
-      // Redirige après 3 secondes
       setTimeout(function(){
-        window.location.href = "https://paris-nanterre.sona-systems.com/default.aspx?p_return_experiment_id=718";
-      }, 3000);
+        window.location.href = "https://paris-nanterre.sona-systems.com/webstudy_credit.aspx?experiment_id=719&credit_token=2191cab625c04b3aa1b63b8af994ccf0&survey_code=" + sona_id;
+        window.open("https://paris-nanterre.sona-systems.com/default.aspx?p_return_experiment_id=718", "_blank");
+      }, 4000);
     }
   }
-}
+};
 timeline.push(vulnerabilite);
 
 const save_data = {
