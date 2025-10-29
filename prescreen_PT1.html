@@ -67,18 +67,31 @@ var expe_conduite = {
   questions: [
     {
       prompt: `Concernant votre expérience de conduite sur route, cochez la ou les cases qui s'appliquent à votre situation :`, 
-      options: [`Je n'ai pas d'expérience de conduite`,
-                `Je pratique (ou ai pratiqué) la conduite accompagnée`, 
-                `Je suis en train de passer le permis voiture (permis B)`, 
-                `J'ai le permis voiture (permis B)`, 
-                `J'ai un permis de conduire autre que le permis B (par ex. BSR, permis A, permis A1)`, 
-                `J'utilise (ou ai utilisé) une voiture sans permis`], 
+      options: [
+        `Je n'ai pas d'expérience de conduite`,
+        `Je pratique (ou ai pratiqué) la conduite accompagnée`, 
+        `Je suis en train de passer le permis voiture (permis B)`, 
+        `J'ai le permis voiture (permis B)`, 
+        `J'ai un permis de conduire autre que le permis B (par ex. BSR, permis A, permis A1)`, 
+        `J'utilise (ou ai utilisé) une voiture sans permis`
+      ], 
       horizontal: false,
       required: true
     }
   ], 
   randomize_question_order: false,
-  data: { trial_name: 'expe_conduite' }
+  data: { trial_name: 'expe_conduite' },
+  on_finish: function(data) {
+    let resp = data.response || data.responses;
+    if (typeof resp === 'string') resp = JSON.parse(resp);
+
+    // Le nom de la question est "Q0" par défaut pour la première question
+    const reponses = resp.Q0;  
+
+    if (reponses.includes(`Je n'ai pas d'expérience de conduite`)) {
+      jsPsych.endExperiment('Merci, mais vous ne pouvez pas participer à cette étude sans expérience de conduite.');
+    }
+  }
 }
 timeline.push(expe_conduite);
 
